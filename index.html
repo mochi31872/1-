@@ -309,3 +309,185 @@ render();
 
 document.getElementById("foodName").value="";
 document.getElementById("foodQty").value="";
+document.getElementById("expiry").value="";
+}
+
+function getStatus(expiry){
+
+    const today=new Date();
+    today.setHours(0,0,0,0);
+
+    const exp=new Date(expiry);
+
+    const diff=Math.floor(
+        (exp-today)/(1000*60*60*24)
+    );
+
+    if(diff<0){
+        return{
+            text:"🔴 폐기",
+            class:"expired",
+            order:0
+        };
+    }
+
+    if(diff<=3){
+        return{
+            text:"🟡 임박",
+            class:"warning",
+            order:1
+        };
+    }
+
+    return{
+        text:"🟢 정상",
+        class:"good",
+        order:2
+    };
+
+}
+
+function render(){
+
+    const keyword=document
+    .getElementById("search")
+    .value
+    .toLowerCase();
+
+    let totalQty=0;
+
+    document.getElementById("itemCount").innerText=foods.length;
+
+    foods.forEach(food=>{
+
+        food.total=food.batches.reduce(
+            (sum,b)=>sum+b.qty,
+            0
+        );
+
+        totalQty+=food.total;
+
+        food.next=food.batches
+        .slice()
+        .sort((a,b)=>
+            new Date(a.expiry)-new Date(b.expiry)
+        )[0];
+
+    });
+
+    document.getElementById("totalQty").innerText=totalQty;
+
+    foods.sort((a,b)=>{
+
+        const sa=getStatus(a.next.expiry);
+        const sb=getStatus(b.next.expiry);
+
+        if(sa.order!==sb.order){
+
+            return sa.order-sb.order;
+
+        }
+
+        return new Date(a.next.expiry)-new Date(b.next.expiry);
+
+    });
+
+    const list=document.getElementById("list");
+
+    list.innerHTML="";
+
+    foods
+    .filter(food=>
+        food.name.toLowerCase().includes(keyword)
+    )
+    .forEach((food,index)=>{
+
+        let html=`
+
+<div class="item">
+
+<h3>
+
+${food.name}
+
+<span>
+
+${food.total}개
+
+</span>
+
+</h3>
+
+<p>
+
+카테고리 : ${food.category}
+
+</p>
+
+`;
+
+        food.batches
+        .sort((a,b)=>
+            new Date(a.expiry)-new Date(b.expiry)
+        )
+        .forEach((batch,bIndex)=>{
+
+            const status=getStatus(batch.expiry);
+
+            html+=`
+
+<div class="batch ${status.class}">
+
+수량 : ${batch.qty}개<br>
+
+유통기한 : ${batch.expiry}<br>
+
+상태 : ${status.text}
+
+<br><br>
+
+<div class="flex">
+
+<button
+class="small-btn"
+onclick="editBatch(${index},${bIndex})">
+
+수정
+
+</button>
+
+<button
+class="small-btn"
+onclick="deleteBatch(${index},${bIndex})">
+
+삭제
+
+</button>
+
+</div>
+
+</div>
+
+`;
+
+        });
+
+        html+=`
+
+<button
+style="margin-top:10px;"
+onclick="addBatch(${index})">
+
+입고분 추가
+
+</button>
+
+</div>
+
+`;
+
+        list.innerHTML+=html;
+
+    });
+
+}
