@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>식자재 관리</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"맑은 고딕",sans-serif;
+}
+
+body{
+    background:#f2f4f8;
+    padding:15px;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#2c3e50;
+}
+
+.card{
+    background:white;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+input,
+select,
+button{
+
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:16px;
+
+}
+
+button{
+
+    background:#27ae60;
+    color:white;
+    border:none;
+    cursor:pointer;
+
+}
+
+button:hover{
+
+    background:#219150;
+
+}
+
+.summary{
+
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+
+}
+
+.summary div{
+
+    background:#27ae60;
+    color:white;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+
+}
+
+.search{
+
+    margin-bottom:15px;
+
+}
+
+.item{
+
+    background:white;
+    border-radius:12px;
+    margin-bottom:12px;
+    padding:15px;
+
+}
+
+.item h3{
+
+    display:flex;
+    justify-content:space-between;
+
+}
+
+.batch{
+
+    margin-top:10px;
+    padding:10px;
+    border-left:5px solid #3498db;
+    background:#f8f8f8;
+    border-radius:8px;
+
+}
+
+.expired{
+
+    border-left-color:red;
+
+}
+
+.warning{
+
+    border-left-color:orange;
+
+}
+
+.good{
+
+    border-left-color:green;
+
+}
+
+.small-btn{
+
+    width:auto;
+    padding:8px 12px;
+    margin-top:5px;
+
+}
+
+.flex{
+
+    display:flex;
+    gap:8px;
+
+}
+
+.flex button{
+
+    flex:1;
+
+}
+
+@media(max-width:600px){
+
+.summary{
+
+grid-template-columns:1fr;
+
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🍱 식자재 관리</h1>
+
+<div class="summary">
+
+<div>
+
+<h2 id="itemCount">0</h2>
+
+품목 수
+
+</div>
+
+<div>
+
+<h2 id="totalQty">0</h2>
+
+총 재고
+
+</div>
+
+</div>
+
+<div class="card">
+
+<input
+id="foodName"
+placeholder="품목명">
+
+<input
+id="foodQty"
+type="number"
+placeholder="수량">
+
+<select id="category">
+
+<option>육류</option>
+<option>해산물</option>
+<option>채소</option>
+<option>과일</option>
+<option>유제품</option>
+<option>냉동식품</option>
+<option>기타</option>
+
+</select>
+
+<input
+id="expiry"
+type="date">
+
+<button onclick="addFood()">
+
+등록
+
+</button>
+
+</div>
+
+<input
+id="search"
+class="search"
+placeholder="검색..."
+onkeyup="render()">
+
+<div id="list"></div>
+
+</div>
+
+<script>
+
+let foods=JSON.parse(localStorage.getItem("foods"))||[];
+
+function save(){
+
+localStorage.setItem(
+"foods",
+JSON.stringify(foods)
+);
+
+}
+
+function addFood(){
+
+const name=document.getElementById("foodName").value.trim();
+
+const qty=parseInt(document.getElementById("foodQty").value);
+
+const category=document.getElementById("category").value;
+
+const expiry=document.getElementById("expiry").value;
+
+if(!name||!qty||!expiry){
+
+alert("모든 항목을 입력하세요.");
+
+return;
+
+}
+
+// 같은 품목 찾기
+
+let food=foods.find(f=>f.name===name);
+
+if(food){
+
+food.batches.push({
+
+qty,
+expiry
+
+});
+
+}else{
+
+foods.push({
+
+name,
+category,
+
+batches:[
+
+{
+
+qty,
+expiry
+
+}
+
+]
+
+});
+
+}
+
+save();
+
+render();
+
+document.getElementById("foodName").value="";
+document.getElementById("foodQty").value="";
