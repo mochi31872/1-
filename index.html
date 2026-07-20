@@ -491,3 +491,86 @@ onclick="addBatch(${index})">
     });
 
 }
+function addBatch(index){
+
+    const qty=parseInt(prompt("수량"));
+
+    if(isNaN(qty)||qty<=0)return;
+
+    const expiry=prompt("유통기한 (YYYY-MM-DD)");
+
+    if(!expiry)return;
+
+    foods[index].batches.push({
+
+        qty,
+        expiry
+
+    });
+
+    save();
+
+    render();
+
+}
+
+function editBatch(foodIndex,batchIndex){
+
+    const batch=foods[foodIndex].batches[batchIndex];
+
+    const qty=parseInt(
+
+        prompt("수량",batch.qty)
+
+    );
+
+    if(isNaN(qty)||qty<=0)return;
+
+    const expiry=prompt(
+
+        "유통기한",
+
+        batch.expiry
+
+    );
+
+    if(!expiry)return;
+
+    batch.qty=qty;
+
+    batch.expiry=expiry;
+
+    save();
+
+    render();
+
+}
+
+function deleteBatch(foodIndex,batchIndex){
+
+    if(!confirm("삭제하시겠습니까?")){
+
+        return;
+
+    }
+
+    foods[foodIndex].batches.splice(batchIndex,1);
+
+    if(foods[foodIndex].batches.length===0){
+
+        foods.splice(foodIndex,1);
+
+    }
+
+    save();
+
+    render();
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
